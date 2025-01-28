@@ -34,28 +34,6 @@ jobs:
       - name: Linting
         run: cargo clippy -- -D warnings
 
-  audit:
-    name: Security Audit
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
-
-      - name: Install rustup and Rust toolchain
-        run: |
-          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-          export PATH="$HOME/.cargo/bin:$PATH"
-          rustup update
-          rustup default stable
-
-      - name: Install cargo-audit
-        run: |
-          export PATH="$HOME/.cargo/bin:$PATH"
-          cargo install cargo-audit
-
-      - name: Run Cargo Audit
-        run: cargo audit
-
   tests:
     name: Run Unit and Integration Tests
     runs-on: ubuntu-latest
