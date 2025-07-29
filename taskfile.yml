@@ -1,0 +1,16 @@
+version: "3"
+
+tasks:
+  init:
+    desc: Install all the rust tooling locally
+    cmds:
+      - rustup update
+      - rustup install 1.80.1
+      - rustup default 1.80.1
+      - rustc --version
+      - cargo --version
+      - brew install lld
+      - cargo install cargo-watch
+  watch:
+    cmds:
+      - cargo watch -x check -x test -x run
