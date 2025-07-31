@@ -5,18 +5,19 @@ tasks:
     desc: Install all the rust tooling locally
     cmds:
       - rustup update
-      - rustup install 1.82.1
-      - rustup default 1.82.1
+      - rustup install 1.82.0
+      - rustup default 1.82.0
       - rustc --version
       - cargo --version
       - brew install lld
-      - cargo install cargo-watch
+      - cargo install cargo-watch --version 8.5.3
       - cargo install cargo-llvm-cov --version 0.6.15
       - rustup component add clippy
       - rustup component add rustfmt
-      - cargo install cargo-audit
+      - cargo install cargo-audit --version 0.21.1
       - rustup toolchain install nightly
-      - cargo +nightly install cargo-expand
+      - cargo +nightly install cargo-expand --version 1.0.114
+      - cargo install sqlx-cli --version 0.6.3 --no-default-features --features rustls,postgres
 
   watch:
     desc: watch all files and run tests then app
@@ -42,3 +43,14 @@ tasks:
     desc: expand all the macros in our rust code
     cmds:
       - cargo +nightly expand
+
+  db-up:
+    desc: spin up the db container
+    cmds:
+      - ./scripts/init_db.sh
+
+  db-down:
+    desc: spin down the db container
+    cmds:
+      - docker stop postgres
+      - docker rm postgres
