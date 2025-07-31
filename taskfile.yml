@@ -49,6 +49,13 @@ tasks:
     cmds:
       - ./scripts/init_db.sh
 
+  db-migrate:
+    desc: run the db migrations on the running database
+    env:
+      SKIP_DOCKER: true
+    cmds:
+      - ./scripts/init_db.sh
+
   db-down:
     desc: spin down the db container
     cmds:
