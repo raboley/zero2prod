@@ -18,6 +18,18 @@ tasks:
       - rustup toolchain install nightly
       - cargo +nightly install cargo-expand --version 1.0.114
       - cargo install sqlx-cli --version 0.6.3 --no-default-features --features rustls,postgres
+      - cargo install cargo-udeps --version 0.1.25
+
+  pre-commit:
+    desc: Run things that should be done pre-commiting
+    deps:
+      - fmt
+      - tidy
+
+  tidy:
+    desc: clean up unused deps
+    cmds:
+      - cargo +nightly udeps
 
   watch:
     desc: watch all files and run tests then app
