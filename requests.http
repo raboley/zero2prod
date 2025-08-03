@@ -1,0 +1,21 @@
+### subscribe-valid
+POST http://localhost:8000/subscriptions
+Content-Type: application/x-www-form-urlencoded
+
+name=le%20guin&email=ursula_le_guin%40gmail.com
+
+### subscribe-missing-email
+POST http://localhost:8000/subscriptions
+Content-Type: application/x-www-form-urlencoded
+
+name=le%20guin
+
+### subscribe-missing-name
+POST http://localhost:8000/subscriptions
+Content-Type: application/x-www-form-urlencoded
+
+email=ursula_le_guin%40gmail.com
+
+### subscribe-empty
+POST http://localhost:8000/subscriptions
+Content-Type: application/x-www-form-urlencoded
