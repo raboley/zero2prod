@@ -81,3 +81,8 @@ tasks:
     cmds:
       - docker stop postgres
       - docker rm postgres
+
+  sqlx-prepare:
+    desc: generate sqlx offline query metadata 
+    cmds:
+      - cargo sqlx prepare --database-url postgres://app:secret@localhost:5432/newsletter --merged -- --all-targets

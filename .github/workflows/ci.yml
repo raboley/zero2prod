@@ -83,7 +83,7 @@ jobs:
         run: cargo test
 
       - name: Check that queries are fresh
-        run: cargo sqlx prepare --workspace --check -- --all-targets
+        run: cargo sqlx prepare --check --merged -- --all-targets
 
   coverage:
     name: Code coverage
