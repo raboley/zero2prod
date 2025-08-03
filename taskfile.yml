@@ -18,7 +18,8 @@ tasks:
       - rustup toolchain install nightly
       - cargo +nightly install cargo-expand --version 1.0.114
       - cargo install sqlx-cli --version 0.6.3 --no-default-features --features rustls,postgres
-      - cargo install cargo-udeps --version 0.1.25
+      - cargo install cargo-udeps --version 0.1.26
+      - cargo install bunyan --version 0.1.9
 
   pre-commit:
     desc: Run things that should be done pre-commiting
@@ -40,6 +41,13 @@ tasks:
     desc: run tests
     cmds:
       - cargo test
+
+  test-w-logs:
+    desc: run tests with logs printing to stdout
+    env:
+      TEST_LOG: true
+    cmds:
+      - cargo test | bunyan
 
   fmt:
     desc: format all files
