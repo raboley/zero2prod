@@ -1,6 +1,4 @@
-use std::io::Stdout;
 use std::net::TcpListener;
-use std::process::Stdio;
 
 use sqlx::PgPool;
 use zero2prod::configuration::get_configuration;
