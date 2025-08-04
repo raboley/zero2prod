@@ -1,8 +1,18 @@
-FROM rust:1.82.0 AS builder
+FROM lukemathwalker/cargo-chef:latest-rust-1.82.0 as chef
 WORKDIR /app
 RUN apt update && apt install lld clang -y
+
+FROM chef as planner
 COPY . .
-ENV SQLX_OFFLINE true
+RUN cargo chef prepare --recipe-path recipe.json
+
+FROM chef as builder
+COPY --from=planner /app/recipe.json recipe.json
+# Build dependencies - this layer will be cached
+RUN cargo chef cook --release --recipe-path recipe.json
+# Copy source code
+COPY . .
+ENV SQLX_OFFLINE=true
 RUN cargo build --release
 
 FROM debian:bookworm-slim AS runtime
@@ -18,4 +28,4 @@ COPY --from=builder /app/target/release/zero2prod zero2prod
 COPY configuration configuration
 
 ENV APP_ENVIRONMENT production
-ENTRYPOINT [ "./target/release/zero2prod" ]
+ENTRYPOINT [ "./zero2prod" ]

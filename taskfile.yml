@@ -51,6 +51,7 @@ tasks:
       - cargo install sqlx-cli --version 0.6.3 --no-default-features --features rustls,postgres
       - cargo install cargo-udeps --version 0.1.29
       - cargo install bunyan --version 0.1.9
+      - brew install doctl
 
   pre-commit:
     desc: Run things that should be done pre-commiting
