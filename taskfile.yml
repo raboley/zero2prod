@@ -12,6 +12,12 @@ tasks:
     cmds:
       - docker run -p 8000:8000 zero2prod
 
+  docker-debug:
+    deps:
+      - docker-build
+    cmds:
+      - docker run --rm -p 8000:8000 -e RUST_LOG=debug -e DATABASE__HOST=host.docker.internal -e DATABASE__USERNAME=app -e DATABASE__PASSWORD=secret zero2prod
+
   docker-build:
     sources:
       - src/**/*.rs
