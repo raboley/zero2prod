@@ -3,15 +3,26 @@ WORKDIR /app
 RUN apt update && apt install lld clang -y
 
 FROM chef as planner
-COPY . .
+# Copy source code only
+COPY ./src ./src
+COPY ./configuration ./configuration
+COPY ./.cargo ./.cargo
+COPY ./Cargo.lock ./Cargo.lock
+COPY ./Cargo.toml ./Cargo.toml
+COPY ./sqlx-data.json ./sqlx-data.json
 RUN cargo chef prepare --recipe-path recipe.json
 
 FROM chef as builder
 COPY --from=planner /app/recipe.json recipe.json
-# Build dependencies - this layer will be cached
 RUN cargo chef cook --release --recipe-path recipe.json
-# Copy source code
-COPY . .
+# Copy source code only
+COPY ./src ./src
+COPY ./configuration ./configuration
+COPY ./.cargo ./.cargo
+COPY ./Cargo.lock ./Cargo.lock
+COPY ./Cargo.toml ./Cargo.toml
+COPY ./sqlx-data.json ./sqlx-data.json
+
 ENV SQLX_OFFLINE=true
 RUN cargo build --release
 
