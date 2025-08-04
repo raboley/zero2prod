@@ -1,21 +1,25 @@
 ### subscribe-valid
+# curl -X POST http://localhost:8000/subscriptions -H "Content-Type: application/x-www-form-urlencoded" -d "name=le%20guin&email=ursula_le_guin%40gmail.com"
 POST http://localhost:8000/subscriptions
 Content-Type: application/x-www-form-urlencoded
 
 name=le%20guin&email=ursula_le_guin%40gmail.com
 
 ### subscribe-missing-email
+# curl -X POST http://localhost:8000/subscriptions -H "Content-Type: application/x-www-form-urlencoded" -d "name=le%20guin"
 POST http://localhost:8000/subscriptions
 Content-Type: application/x-www-form-urlencoded
 
 name=le%20guin
 
 ### subscribe-missing-name
+# curl -X POST http://localhost:8000/subscriptions -H "Content-Type: application/x-www-form-urlencoded" -d "email=ursula_le_guin%40gmail.com"
 POST http://localhost:8000/subscriptions
 Content-Type: application/x-www-form-urlencoded
 
 email=ursula_le_guin%40gmail.com
 
 ### subscribe-empty
+# curl -X POST http://localhost:8000/subscriptions -H "Content-Type: application/x-www-form-urlencoded"
 POST http://localhost:8000/subscriptions
 Content-Type: application/x-www-form-urlencoded

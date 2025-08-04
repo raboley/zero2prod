@@ -1,6 +1,31 @@
 version: "3"
 
 tasks:
+  run:
+    desc: build the app and run it on port 8000
+    cmds:
+      - cargo run
+
+  docker-run:
+    deps:
+      - docker-build
+    cmds:
+      - docker run -p 8000:8000 zero2prod
+
+  docker-build:
+    sources:
+      - src/**/*.rs
+      - src/*.rs
+      - migrations
+      - cargo.toml
+      - Dockerfile
+      - sqlx-data.json
+    generates:
+      - .task/docker_build.txt
+    cmds:
+      - docker build -t zero2prod .
+      - mkdir -p .task && touch .task/docker_build.txt
+
   init:
     desc: Install all the rust tooling locally
     cmds:
@@ -83,6 +108,6 @@ tasks:
       - docker rm postgres
 
   sqlx-prepare:
-    desc: generate sqlx offline query metadata 
+    desc: generate sqlx offline query metadata
     cmds:
       - cargo sqlx prepare --database-url postgres://app:secret@localhost:5432/newsletter --merged -- --all-targets
