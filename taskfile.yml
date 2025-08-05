@@ -1,5 +1,8 @@
 version: "3"
 
+vars:
+  APP_URL: $(doctl apps list --format ID,Spec.Name,DefaultIngress --no-header | grep zero2prod | awk '{print $3}')
+
 tasks:
   run:
     desc: build the app and run it on port 8000
@@ -118,3 +121,30 @@ tasks:
     desc: generate sqlx offline query metadata
     cmds:
       - cargo sqlx prepare --database-url postgres://app:secret@localhost:5432/newsletter --merged -- --all-targets
+
+  deploy:
+    desc: deploy app to digital ocean
+    cmds:
+      - |
+        if doctl apps list --format Spec.Name --no-header | grep -q "^zero2prod$"; then
+          APP_ID=$(doctl apps list --format ID,Spec.Name --no-header | grep zero2prod | awk '{print $1}')
+          echo "App exists with ID: $APP_ID, updating..."
+          doctl apps update $APP_ID --spec spec.yaml
+        else
+          echo "App doesn't exist, creating new deployment..."
+          doctl apps create --spec spec.yaml
+        fi
+
+  health-check:
+    desc: check health of deployed app
+    cmds:
+      - curl -f -s "{{.APP_URL}}/health_check" --verbose
+
+  test-subscription:
+    desc: test the /subscriptions endpoint with a sample subscriber
+    cmds:
+      - |
+        curl --request POST \
+          --data 'name=le%20guin&email=ursula_le_guin%40gmail.com' \
+          {{.APP_URL}}/subscriptions \
+          --verbose
