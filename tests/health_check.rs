@@ -1,3 +1,4 @@
+use actix_web::web::ReqData;
 use secrecy::Secret;
 use sqlx::{Connection, Executor, PgConnection, PgPool};
 use std::{net::TcpListener, sync::LazyLock};
@@ -122,6 +123,33 @@ async fn subscribe_returns_a_200_for_valid_form_data() {
 }
 
 #[tokio::test]
+async fn subscribe_returns_a_400_when_fields_are_present_but_empty() {
+    let app = spawn_app().await;
+    let client = reqwest::Client::new();
+    let test_cases = vec![
+        ("name=&email=ursula_le_guin%40gmail.com", "empty name"),
+        ("name=Ursula&email=", "empty email"),
+        ("name=Ursula&email=definitely-not-an-email", "invalid email"),
+    ];
+
+    for (body, description) in test_cases {
+        let response = client
+            .post(&format!("{}/subscriptions", &app.address))
+            .header("Content-Type", "application/x-www-form-urlencoded")
+            .body(body)
+            .send()
+            .await
+            .expect("Failed to execute request.");
+        assert_eq!(
+            400,
+            response.status().as_u16(),
+            "The API did not return a 400 OK when the payload was {}",
+            description
+        )
+    }
+}
+
+#[tokio::test]
 async fn subscribe_returns_a_400_when_data_is_missing() {
     // Arrange
     let client = reqwest::Client::new();
@@ -131,17 +159,14 @@ async fn subscribe_returns_a_400_when_data_is_missing() {
             "email=ursula_le_guin%40gmai.com".to_owned(),
             "missing the name",
         ),
-        (
-            "email=email@dot.com&name=".to_owned(),
-            "please enter a name with at least 1 character",
-        ),
+        ("email=email@dot.com&name=".to_owned(), "empty name"),
         (
             format!("email=email@dot.com&name={}", "n".repeat(257)),
-            "please enter a nickname if your name is longer than 256 characters",
+            "name is too long",
         ),
         (
             "email=email@dot.com&name=asdf{kjdf".to_owned(),
-            r#"please enter a name without special characters '/()"<>\{}"#,
+            r#"name includes special characters '/()"<>\{}"#,
         ),
     ];
 
