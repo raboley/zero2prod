@@ -1,7 +1,12 @@
 version: "3"
 
 vars:
-  APP_URL: $(doctl apps list --format ID,Spec.Name,DefaultIngress --no-header | grep zero2prod | awk '{print $3}')
+  APP_URL:
+    sh: doctl apps list --format ID,Spec.Name,DefaultIngress --no-header | grep zero2prod | awk '{print $3}'
+  DB_ID:
+    sh: doctl databases list --format ID,Name --no-header | grep newsletter | awk '{print $1}'
+  APP_ID:
+    sh: doctl apps list --format ID,Spec.Name --no-header | grep zero2prod | awk '{print $1}'
 
 tasks:
   run:
@@ -148,3 +153,76 @@ tasks:
           --data 'name=le%20guin&email=ursula_le_guin%40gmail.com' \
           {{.APP_URL}}/subscriptions \
           --verbose
+
+  db-trusted-sources:
+    internal: true
+    vars:
+      ENABLED: '{{.ENABLED | default "true"}}'
+    cmds:
+      - |
+        if [ "{{.ENABLED}}" = "false" ]; then
+          echo "Disabling trusted sources..."
+          # Use API directly since doctl doesn't support empty rules
+          curl -s -X PUT \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer $(doctl auth token)" \
+            -d '{"rules": []}' \
+            "https://api.digitalocean.com/v2/databases/{{.DB_ID}}/firewall" > /dev/null
+        else
+          echo "Enabling trusted sources..."
+          doctl databases firewalls replace {{.DB_ID}} --rule app:{{.APP_ID}} > /dev/null
+        fi
+
+  db-migrate-prod:
+    desc: run database migrations on production database
+    cmds:
+      - |
+        if [ -z "{{.DB_ID}}" ]; then
+          echo "Error: No newsletter database found"
+          exit 1
+        fi
+      - task: db-trusted-sources
+        vars:
+          ENABLED: "false"
+      - defer:
+          task: db-trusted-sources
+          vars:
+            ENABLED: "true"
+      - |
+        CONNECTION_URI=$(doctl databases connection {{.DB_ID}} --format URI --no-header)
+        echo "Running migrations on $CONNECTION_URI..."
+        DATABASE_URL="$CONNECTION_URI" sqlx migrate run
+
+  destroy:
+    desc: destroy the app and optionally the database
+    cmds:
+      - |
+        echo "⚠️  WARNING: This will destroy your zero2prod app!"
+        echo -n "Are you sure? (y/N): "
+        read -r response
+        if [ "$response" != "y" ] && [ "$response" != "Y" ]; then
+          echo "Cancelled"
+          exit 0
+        fi
+        
+        # Delete the app
+        if [ -n "{{.APP_ID}}" ]; then
+          echo "Destroying app {{.APP_ID}}..."
+          doctl apps delete {{.APP_ID}} --force
+        else
+          echo "No app found to delete"
+        fi
+        
+        # Ask about database
+        if [ -n "{{.DB_ID}}" ]; then
+          echo -n "Also destroy the database? (y/N): "
+          read -r response
+          if [ "$response" = "y" ] || [ "$response" = "Y" ]; then
+            echo "Destroying database {{.DB_ID}}..."
+            doctl databases delete {{.DB_ID}} --force
+          else
+            echo "Database preserved"
+          fi
+        fi
+        
+        echo "✓ Cleanup complete"

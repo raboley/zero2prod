@@ -126,9 +126,23 @@ async fn subscribe_returns_a_400_when_data_is_missing() {
     // Arrange
     let client = reqwest::Client::new();
     let test_cases = vec![
-        ("name=le%20guin", "missing the email"),
-        ("email=ursula_le_guin%40gmai.com", "missing the name"),
-        ("", "missing both the name and email"),
+        ("name=le%20guin".to_owned(), "missing the email"),
+        (
+            "email=ursula_le_guin%40gmai.com".to_owned(),
+            "missing the name",
+        ),
+        (
+            "email=email@dot.com&name=".to_owned(),
+            "please enter a name with at least 1 character",
+        ),
+        (
+            format!("email=email@dot.com&name={}", "n".repeat(257)),
+            "please enter a nickname if your name is longer than 256 characters",
+        ),
+        (
+            "email=email@dot.com&name=asdf{kjdf".to_owned(),
+            r#"please enter a name without special characters '/()"<>\{}"#,
+        ),
     ];
 
     for (invalid_body, error_message) in test_cases {
