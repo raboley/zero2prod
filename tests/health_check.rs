@@ -1,4 +1,3 @@
-use actix_web::web::ReqData;
 use secrecy::Secret;
 use sqlx::{Connection, Executor, PgConnection, PgPool};
 use std::{net::TcpListener, sync::LazyLock};

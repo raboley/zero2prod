@@ -1,10 +1,10 @@
 use validator::ValidateEmail;
 
 #[derive(Debug)]
-struct SubscriberEmail(String);
+pub struct SubscriberEmail(String);
 
 impl SubscriberEmail {
-    fn parse(s: String) -> Result<SubscriberEmail, String> {
+    pub fn parse(s: String) -> Result<SubscriberEmail, String> {
         if s.validate_email() {
             Ok(Self(s))
         } else {
@@ -22,13 +22,13 @@ impl AsRef<str> for SubscriberEmail {
 #[cfg(test)]
 mod tests {
     use super::SubscriberEmail;
-    use claims::{assert_err, assert_ok};
+    use claims::assert_err;
 
     use fake::faker::internet::en::SafeEmail;
     use fake::Fake;
 
     use rand::rngs::StdRng;
-    use rand::{random, SeedableRng};
+    use rand::SeedableRng;
 
     #[derive(Clone, Debug)]
     struct ValidEmailFixture(pub String);
