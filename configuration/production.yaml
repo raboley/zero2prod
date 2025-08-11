@@ -2,3 +2,5 @@ application:
   host: 0.0.0.0
 database:
   require_ssl: true
+  base_url: "https://api.postmarkapp.com"
+  sender_email: "russell@boleytech.com"
