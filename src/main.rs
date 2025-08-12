@@ -1,5 +1,6 @@
 use std::net::TcpListener;
 
+use secrecy::ExposeSecret;
 use sqlx::postgres::PgPoolOptions;
 use zero2prod::configuration::get_configuration;
 use zero2prod::email_client::EmailClient;
@@ -22,7 +23,11 @@ async fn main() -> Result<(), std::io::Error> {
         .email_client
         .base_url()
         .expect("Invalid base address for email client");
-    let email_client = EmailClient::new(base_url, sender_email);
+    let email_client = EmailClient::new(
+        base_url,
+        sender_email,
+        configuration.email_client.authorization_token,
+    );
 
     let address = format!(
         "{}:{}",

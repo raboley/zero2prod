@@ -34,7 +34,8 @@ pub struct DatabaseSettings {
 #[derive(serde::Deserialize, Clone)]
 pub struct EmailClientSettings {
     pub base_url: String,
-    sender_email: String,
+    pub sender_email: String,
+    pub authorization_token: Secret<String>
 }
 
 impl EmailClientSettings {

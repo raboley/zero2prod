@@ -1,5 +1,6 @@
 use actix_web::body;
 use reqwest::{Client, Url};
+use secrecy::{ExposeSecret, Secret};
 
 use crate::domain::SubscriberEmail;
 
@@ -7,14 +8,27 @@ pub struct EmailClient {
     http_client: Client,
     base_url: reqwest::Url,
     sender: SubscriberEmail,
+    authorization_token: Secret<String>,
+    // Store the full email endpoint URL
+    email_url: reqwest::Url,
 }
 
 impl EmailClient {
-    pub fn new(base_url: reqwest::Url, sender: SubscriberEmail) -> Self {
+    pub fn new(
+        base_url: reqwest::Url,
+        sender: SubscriberEmail,
+        authorization_token: Secret<String>,
+    ) -> Self {
+        // This is safe: "email" is a valid path segment that will always parse
+        let email_url = base_url
+            .join("email")
+            .expect("Failed to append /email to base URL");
         Self {
             http_client: Client::new(),
             base_url,
             sender,
+            authorization_token,
+            email_url,
         }
     }
 }
@@ -26,18 +40,43 @@ impl EmailClient {
         subject: &str,
         html_content: &str,
         text_content: &str,
-    ) -> Result<(), String> {
-        let url = format!("{}/email", &self.base_url);
-        let builder = self.http_client.post(&url);
+    ) -> Result<(), reqwest::Error> {
+        let request_body = SendEmailRequest {
+            from: self.sender.as_ref().to_owned(),
+            to: recipient.as_ref().to_owned(),
+            subject: subject.to_owned(),
+            html_body: html_content.to_owned(),
+            text_body: text_content.to_owned(),
+        };
+        self.http_client
+            .post(self.email_url.clone())
+            .header(
+                "X-Postmark-Server-Token",
+                self.authorization_token.expose_secret(),
+            )
+            .json(&request_body)
+            .send()
+            .await?;
 
+        // Setting the body with an object using Serde Json also sets these headers automatically
         // .header("Content-Type", "application/json")
         // .header("Accept", "application/json")
+
         // .body("")
         // .send()
         // .await;
 
         Ok(())
     }
+}
+
+#[derive(serde::Serialize)]
+struct SendEmailRequest {
+    from: String,
+    to: String,
+    subject: String,
+    html_body: String,
+    text_body: String,
 }
 
 #[cfg(test)]
@@ -47,9 +86,10 @@ mod tests {
             internet::en::SafeEmail,
             lorem::en::{Paragraph, Sentence},
         },
-        Fake,
+        Fake, Faker,
     };
     use reqwest::Url;
+    use secrecy::Secret;
     use wiremock::{matchers::any, Mock, MockServer, ResponseTemplate};
 
     use crate::{domain::SubscriberEmail, email_client::EmailClient};
@@ -60,7 +100,7 @@ mod tests {
         let mock_server = MockServer::start().await;
         let sender = SubscriberEmail::parse(SafeEmail().fake()).unwrap();
         let uri = Url::parse(&mock_server.uri()).expect("Failed to parse mock uri");
-        let email_client = EmailClient::new(uri, sender);
+        let email_client = EmailClient::new(uri, sender, Secret::new(Faker.fake()));
 
         Mock::given(any())
             .respond_with(ResponseTemplate::new(200))

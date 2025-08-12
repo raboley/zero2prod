@@ -62,7 +62,8 @@ async fn spawn_app() -> TestApp {
         .email_client
         .base_url()
         .expect("Invalid base url client for sender");
-    let email_client = EmailClient::new(base_url, sender_email);
+    let authorization_token = configuration.email_client.authorization_token;
+    let email_client = EmailClient::new(base_url, sender_email, authorization_token);
 
     let server = zero2prod::startup::run(listener, connection_pool.clone(), email_client)
         .expect("Failed to bind to address");
