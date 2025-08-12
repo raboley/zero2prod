@@ -1,6 +1,8 @@
+use reqwest::Url;
 use secrecy::{ExposeSecret, Secret};
 use serde_aux::field_attributes::deserialize_number_from_string;
 use sqlx::postgres::{PgConnectOptions, PgSslMode};
+use url::ParseError;
 
 use crate::domain::SubscriberEmail;
 
@@ -38,6 +40,9 @@ pub struct EmailClientSettings {
 impl EmailClientSettings {
     pub fn sender(&self) -> Result<SubscriberEmail, String> {
         SubscriberEmail::parse(self.sender_email.clone())
+    }
+    pub fn base_url(&self) -> Result<Url, ParseError> {
+        Url::parse(&self.base_url)
     }
 }
 

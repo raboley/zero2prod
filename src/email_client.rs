@@ -1,15 +1,16 @@
-use reqwest::Client;
+use actix_web::body;
+use reqwest::{Client, Url};
 
 use crate::domain::SubscriberEmail;
 
 pub struct EmailClient {
     http_client: Client,
-    base_url: String,
+    base_url: reqwest::Url,
     sender: SubscriberEmail,
 }
 
 impl EmailClient {
-    pub fn new(base_url: String, sender: SubscriberEmail) -> Self {
+    pub fn new(base_url: reqwest::Url, sender: SubscriberEmail) -> Self {
         Self {
             http_client: Client::new(),
             base_url,
@@ -26,6 +27,15 @@ impl EmailClient {
         html_content: &str,
         text_content: &str,
     ) -> Result<(), String> {
+        let url = format!("{}/email", &self.base_url);
+        let builder = self.http_client.post(&url);
+
+        // .header("Content-Type", "application/json")
+        // .header("Accept", "application/json")
+        // .body("")
+        // .send()
+        // .await;
+
         Ok(())
     }
 }
@@ -39,6 +49,7 @@ mod tests {
         },
         Fake,
     };
+    use reqwest::Url;
     use wiremock::{matchers::any, Mock, MockServer, ResponseTemplate};
 
     use crate::{domain::SubscriberEmail, email_client::EmailClient};
@@ -48,7 +59,8 @@ mod tests {
         // Arrange
         let mock_server = MockServer::start().await;
         let sender = SubscriberEmail::parse(SafeEmail().fake()).unwrap();
-        let email_client = EmailClient::new(mock_server.uri(), sender);
+        let uri = Url::parse(&mock_server.uri()).expect("Failed to parse mock uri");
+        let email_client = EmailClient::new(uri, sender);
 
         Mock::given(any())
             .respond_with(ResponseTemplate::new(200))
