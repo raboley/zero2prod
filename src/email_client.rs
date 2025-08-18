@@ -1,5 +1,4 @@
-use actix_web::body;
-use reqwest::{Client, Url};
+use reqwest::Client;
 use secrecy::{ExposeSecret, Secret};
 
 use crate::domain::SubscriberEmail;
@@ -79,8 +78,6 @@ struct SendEmailRequest<'a> {
 
 #[cfg(test)]
 mod tests {
-    use std::time::Duration;
-
     use claims::{assert_err, assert_ok};
     use fake::{
         faker::{

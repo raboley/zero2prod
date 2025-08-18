@@ -1,6 +1,5 @@
 use std::net::TcpListener;
 
-use secrecy::ExposeSecret;
 use sqlx::postgres::PgPoolOptions;
 use zero2prod::configuration::get_configuration;
 use zero2prod::email_client::EmailClient;
