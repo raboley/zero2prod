@@ -23,10 +23,12 @@ async fn main() -> Result<(), std::io::Error> {
         .email_client
         .base_url()
         .expect("Invalid base address for email client");
+    let timeout = std::time::Duration::from_millis(configuration.email_client.timeout_milliseconds);
     let email_client = EmailClient::new(
         base_url,
         sender_email,
         configuration.email_client.authorization_token,
+        timeout,
     );
 
     let address = format!(
