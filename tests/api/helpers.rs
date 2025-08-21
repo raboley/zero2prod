@@ -12,18 +12,17 @@ pub struct TestApp {
     pub db_pool: PgPool,
 }
 
-static TRACING: LazyLock<()> = LazyLock::new(|| {
-    let default_filter_level = "debug".into();
-    let subscriber_name = "test".to_string();
-
-    if std::env::var("TEST_LOG").is_ok() {
-        let subscriber = get_subscriber(subscriber_name, default_filter_level, std::io::stdout);
-        init_subscriber(subscriber);
-    } else {
-        let subscriber = get_subscriber(subscriber_name, default_filter_level, std::io::sink);
-        init_subscriber(subscriber);
+impl TestApp {
+    pub async fn post_subscriptions(&self, body: String) -> reqwest::Response {
+        reqwest::Client::new()
+            .post(&format!("{}/subscriptions", &self.address))
+            .header("Content-Type", "application/x-www-form-urlencoded")
+            .body(body)
+            .send()
+            .await
+            .expect("Failed to execute request.")
     }
-});
+}
 
 pub async fn spawn_app() -> TestApp {
     LazyLock::force(&TRACING);
@@ -78,3 +77,16 @@ async fn configure_database(config: &DatabaseSettings) -> PgPool {
 
     connection_pool
 }
+
+static TRACING: LazyLock<()> = LazyLock::new(|| {
+    let default_filter_level = "debug".into();
+    let subscriber_name = "test".to_string();
+
+    if std::env::var("TEST_LOG").is_ok() {
+        let subscriber = get_subscriber(subscriber_name, default_filter_level, std::io::stdout);
+        init_subscriber(subscriber);
+    } else {
+        let subscriber = get_subscriber(subscriber_name, default_filter_level, std::io::sink);
+        init_subscriber(subscriber);
+    }
+});
