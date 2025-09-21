@@ -12,6 +12,7 @@ pub struct TestApp {
     pub address: String,
     pub db_pool: PgPool,
     pub email_server: MockServer,
+    pub port: u16,
 }
 
 impl TestApp {
@@ -50,6 +51,7 @@ pub async fn spawn_app() -> TestApp {
     let address = format!("http://127.0.0.1:{}", port);
     TestApp {
         address,
+        port,
         db_pool: get_connection_pool(&configuration.database),
         email_server,
     }

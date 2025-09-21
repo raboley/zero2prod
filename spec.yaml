@@ -16,6 +16,11 @@ services:
     routes:
       - path: /
     envs:
+      # We use Digital Ocean's APP_URL to inject the url dynamically
+      # and provision it as an environment variable
+      - key: APP_APPLICATION__BASE_URL
+        scope: RUN_TIME
+        VALUE: ${APP_URL}
       - key: APP_DATABASE__USERNAME
         scope: RUN_TIME
         value: ${newsletter.USERNAME}
